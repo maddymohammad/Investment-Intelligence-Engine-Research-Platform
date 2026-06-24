@@ -1,0 +1,50 @@
+# ─── Core ────────────────────────────────────────────────────────
+pydantic>=2.5,<3.0
+pydantic-settings>=2.1
+python-dotenv>=1.0
+
+# ─── Data providers ──────────────────────────────────────────────
+yfinance>=0.2.40
+pandas>=2.1
+numpy>=1.26
+requests>=2.31
+beautifulsoup4>=4.12
+feedparser>=6.0.11
+fredapi>=0.5.1
+lxml>=5.0               # faster HTML parser for BeautifulSoup
+
+# ─── Technical analysis ──────────────────────────────────────────
+ta>=0.11.0              # RSI, MACD, MA, Bollinger — no C deps
+
+# ─── Database ────────────────────────────────────────────────────
+sqlalchemy>=2.0
+alembic>=1.13
+
+# ─── AI providers ────────────────────────────────────────────────
+anthropic>=0.40
+openai>=1.50
+
+# ─── Report generation ───────────────────────────────────────────
+jinja2>=3.1
+weasyprint>=62.0        # HTML → PDF
+markdown2>=2.4
+
+# ─── Email ───────────────────────────────────────────────────────
+sendgrid>=6.11
+
+# ─── Dashboard ───────────────────────────────────────────────────
+streamlit>=1.40
+plotly>=5.24
+
+# ─── Scheduler / automation ──────────────────────────────────────
+apscheduler>=3.10.4
+pytz>=2024.1
+tzdata>=2024.1
+
+# ─── GitHub integration ──────────────────────────────────────────
+PyGithub>=2.4
+
+# ─── CLI / utilities ─────────────────────────────────────────────
+click>=8.1
+rich>=13.7
+loguru>=0.7

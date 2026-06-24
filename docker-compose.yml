@@ -1,0 +1,53 @@
+version: "3.9"
+
+# Investment Intelligence Engine — Docker Compose
+# Research-only platform. No trades, no brokerage connections.
+#
+# Services:
+#   scheduler  — runs daily pipeline at 18:00 IST Mon-Fri
+#   dashboard  — Streamlit UI at http://localhost:8501
+#
+# Usage:
+#   docker compose up --build -d          # start both services
+#   docker compose exec scheduler python main.py bootstrap  # first-time setup
+#   docker compose exec scheduler python main.py run        # manual run
+#   docker compose logs -f scheduler      # watch pipeline logs
+
+x-common: &common
+  build: .
+  env_file: .env
+  volumes:
+    - db_data:/app/db
+    - reports_data:/app/reports
+    - logs_data:/app/logs
+  restart: unless-stopped
+
+services:
+  scheduler:
+    <<: *common
+    container_name: invest_scheduler
+    command: ["python", "-m", "src.scheduler"]
+
+  dashboard:
+    <<: *common
+    container_name: invest_dashboard
+    command:
+      - streamlit
+      - run
+      - src/dashboard/app.py
+      - --server.port=8501
+      - --server.address=0.0.0.0
+      - --server.headless=true
+      - --browser.gatherUsageStats=false
+    ports:
+      - "8501:8501"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+  reports_data:
+  logs_data:

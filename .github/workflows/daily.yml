@@ -1,0 +1,88 @@
+name: Daily Investment Pipeline
+
+on:
+  schedule:
+    # 18:00 IST = 12:30 UTC, Mon–Fri
+    - cron: "30 12 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      run_date:
+        description: "Override run date (YYYY-MM-DD). Leave blank for today."
+        required: false
+        default: ""
+
+jobs:
+  run-pipeline:
+    name: Run daily analysis pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore database from cache
+        uses: actions/cache@v4
+        with:
+          path: db/
+          key: investment-db-${{ github.run_number }}
+          restore-keys: |
+            investment-db-
+
+      - name: Initialise database
+        run: python -c "from src.storage.db import init_db; init_db()"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Bootstrap universe (if DB is new)
+        run: |
+          COUNT=$(python -c "from src.storage.db import init_db, get_session; from src.storage.repository import StockRepository; init_db(); s = __import__('contextlib').ExitStack(); sess = s.enter_context(get_session()); print(StockRepository().count(sess))" 2>/dev/null || echo "0")
+          if [ "$COUNT" -lt "10" ]; then
+            echo "Stock universe empty — bootstrapping..."
+            python main.py bootstrap
+          else
+            echo "Universe has $COUNT stocks — skipping bootstrap"
+          fi
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Run daily pipeline
+        run: |
+          if [ -n "${{ github.event.inputs.run_date }}" ]; then
+            python main.py run --date "${{ github.event.inputs.run_date }}"
+          else
+            python main.py run
+          fi
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: "587"
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_USER }}
+          REPORT_EMAIL_TO: ${{ secrets.REPORT_EMAIL_TO }}
+          GITHUB_TOKEN: ${{ secrets.REPORTS_GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ secrets.REPORTS_GITHUB_REPO }}
+          GITHUB_BRANCH: main
+          AI_PROVIDER: anthropic
+          LOG_LEVEL: INFO
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-report-${{ github.run_id }}
+          path: reports/daily/
+          if-no-files-found: ignore
+          retention-days: 90

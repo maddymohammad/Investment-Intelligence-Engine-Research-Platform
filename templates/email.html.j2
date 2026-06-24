@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investment Intelligence — {{ run_date }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f7;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f7;">
+<tr><td align="center" style="padding:24px 12px;">
+  <table width="640" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12);">
+
+    <!-- Header -->
+    <tr>
+      <td style="background:#16213e;padding:24px 32px;">
+        <p style="margin:0;color:#a8b2d8;font-size:11px;text-transform:uppercase;letter-spacing:2px;">Research &amp; Analysis Platform</p>
+        <h1 style="margin:4px 0 0;color:#ffffff;font-size:22px;font-weight:700;">Investment Intelligence</h1>
+        <p style="margin:6px 0 0;color:#7f8db8;font-size:13px;">{{ run_date }} — Post-Market Research Report</p>
+      </td>
+    </tr>
+
+    <!-- Disclaimer -->
+    <tr>
+      <td style="background:#fff3cd;padding:10px 32px;border-bottom:2px solid #ffc107;">
+        <p style="margin:0;font-size:11px;color:#856404;font-weight:600;">
+          RESEARCH ONLY — NOT INVESTMENT ADVICE. All levels are informational reference points only.
+          This system does not place trades or connect to brokerage accounts.
+        </p>
+      </td>
+    </tr>
+
+    <!-- Market context -->
+    {% if market.nifty50_close or market.sensex_close %}
+    <tr>
+      <td style="padding:20px 32px 8px;">
+        <h2 style="margin:0 0 12px;font-size:13px;color:#0f3460;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;">Market Context</h2>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            {% if market.nifty50_close %}
+            <td width="50%" style="padding-right:8px;">
+              <div style="background:#f8f9fa;border-radius:6px;padding:12px;text-align:center;">
+                <p style="margin:0;font-size:10px;color:#6b7280;text-transform:uppercase;">NIFTY 50</p>
+                <p style="margin:4px 0 0;font-size:20px;font-weight:700;color:#16213e;">{{ "{:,.0f}".format(market.nifty50_close) }}</p>
+                <p style="margin:2px 0 0;font-size:13px;{% if (market.nifty50_change_pct or 0) >= 0 %}color:#059669{% else %}color:#dc2626{% endif %};">
+                  {{ "{:+.2f}".format(market.nifty50_change_pct or 0) }}%
+                </p>
+              </div>
+            </td>
+            {% endif %}
+            {% if market.sensex_close %}
+            <td width="50%" style="padding-left:8px;">
+              <div style="background:#f8f9fa;border-radius:6px;padding:12px;text-align:center;">
+                <p style="margin:0;font-size:10px;color:#6b7280;text-transform:uppercase;">SENSEX</p>
+                <p style="margin:4px 0 0;font-size:20px;font-weight:700;color:#16213e;">{{ "{:,.0f}".format(market.sensex_close) }}</p>
+                <p style="margin:2px 0 0;font-size:13px;{% if (market.sensex_change_pct or 0) >= 0 %}color:#059669{% else %}color:#dc2626{% endif %};">
+                  {{ "{:+.2f}".format(market.sensex_change_pct or 0) }}%
+                </p>
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+        </table>
+      </td>
+    </tr>
+    {% endif %}
+
+    <!-- No picks -->
+    {% if not recommendations %}
+    <tr>
+      <td style="padding:32px;">
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:20px;text-align:center;">
+          <p style="margin:0;font-size:15px;font-weight:600;color:#166534;">No Recommendations Today</p>
+          <p style="margin:8px 0 0;font-size:13px;color:#4b5563;">No stocks met all selection criteria. Capital preservation is valid.</p>
+        </div>
+      </td>
+    </tr>
+    {% endif %}
+
+    <!-- Picks -->
+    {% for rec in recommendations %}
+    <tr>
+      <td style="padding:{% if loop.first %}20px{% else %}8px{% endif %} 32px 8px;">
+        {% if loop.first %}
+        <h2 style="margin:0 0 12px;font-size:13px;color:#0f3460;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;">Today's Research Picks</h2>
+        {% endif %}
+        <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+
+          <!-- Stock header -->
+          <div style="background:#0f3460;padding:14px 18px;">
+            <table width="100%" cellpadding="0" cellspacing="0"><tr>
+              <td>
+                <p style="margin:0;font-size:18px;font-weight:700;color:#ffffff;">{{ rec.symbol }}</p>
+                <p style="margin:2px 0 0;font-size:12px;color:#93a8d4;">{{ rec.name }} — {{ rec.cap_category }} CAP</p>
+              </td>
+              <td align="right">
+                <span style="background:#e94560;border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:#fff;">Score: {{ "{:.0f}".format(rec.composite_score) }}/100</span>
+              </td>
+            </tr></table>
+          </div>
+
+          <!-- Metrics -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #e2e8f0;">
+            <tr>
+              <td width="25%" style="padding:12px;text-align:center;border-right:1px solid #e2e8f0;">
+                <p style="margin:0;font-size:10px;color:#6b7280;text-transform:uppercase;">Entry Price</p>
+                <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#16213e;">&#8377;{{ "{:,.0f}".format(rec.entry_price) }}</p>
+              </td>
+              <td width="25%" style="padding:12px;text-align:center;border-right:1px solid #e2e8f0;">
+                <p style="margin:0;font-size:10px;color:#6b7280;text-transform:uppercase;">Confidence</p>
+                <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#0f3460;">{{ "{:.0f}".format(rec.confidence.score) }}%</p>
+              </td>
+              <td width="25%" style="padding:12px;text-align:center;border-right:1px solid #e2e8f0;">
+                <p style="margin:0;font-size:10px;color:#6b7280;text-transform:uppercase;">RSI</p>
+                <p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#16213e;">{{ "{:.1f}".format(rec.technical.rsi) if rec.technical.rsi else "—" }}</p>
+              </td>
+              <td width="25%" style="padding:12px;text-align:center;">
+                <p style="margin:0;font-size:10px;color:#6b7280;text-transform:uppercase;">MACD</p>
+                <p style="margin:4px 0 0;font-size:13px;font-weight:700;{% if rec.technical.macd_status == 'BULLISH' %}color:#059669{% elif rec.technical.macd_status == 'BEARISH' %}color:#dc2626{% else %}color:#6b7280{% endif %};">{{ rec.technical.macd_status }}</p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Scores -->
+          <div style="background:#f8f9fa;padding:8px 18px;border-bottom:1px solid #e2e8f0;font-size:11px;color:#6b7280;">
+            F:{{ "{:.0f}".format(rec.fundamental_score) }} &nbsp;|&nbsp;
+            T:{{ "{:.0f}".format(rec.technical_score) }} &nbsp;|&nbsp;
+            V:{{ "{:.0f}".format(rec.valuation_score) }} &nbsp;|&nbsp;
+            R:{{ "{:.0f}".format(rec.risk_score) }}
+          </div>
+
+          <!-- Body -->
+          <div style="padding:14px 18px;">
+            {% if rec.justification.why_selected %}
+            <p style="margin:0 0 10px;font-size:12px;color:#374151;"><strong>Why Selected:</strong> {{ rec.justification.why_selected }}</p>
+            {% endif %}
+            {% if rec.horizon.short_term %}
+            <p style="margin:0 0 6px;font-size:12px;color:#374151;"><strong>Short-term:</strong> {{ rec.horizon.short_term }}</p>
+            {% endif %}
+            {% if rec.horizon.medium_term %}
+            <p style="margin:0 0 10px;font-size:12px;color:#374151;"><strong>Medium-term:</strong> {{ rec.horizon.medium_term }}</p>
+            {% endif %}
+            {% if rec.confidence.key_positives %}
+            <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:#059669;text-transform:uppercase;">Key Positives</p>
+            {% for pos in rec.confidence.key_positives[:3] %}
+            <p style="margin:2px 0;font-size:11px;color:#374151;">&#10003; {{ pos }}</p>
+            {% endfor %}
+            {% endif %}
+            {% if rec.risk.bear_case %}
+            <p style="margin:10px 0 4px;font-size:11px;font-weight:600;color:#dc2626;text-transform:uppercase;">Bear Case</p>
+            <p style="margin:0;font-size:11px;color:#374151;">{{ rec.risk.bear_case[:250] }}{% if rec.risk.bear_case|length > 250 %}...{% endif %}</p>
+            {% endif %}
+            {% if rec.guidance.watchlist_entry_zone %}
+            <div style="margin-top:12px;background:#f0f9ff;border-left:3px solid #0284c7;padding:8px 12px;border-radius:0 4px 4px 0;">
+              <p style="margin:0;font-size:11px;color:#0369a1;"><strong>Watchlist Zone (reference only):</strong> {{ rec.guidance.watchlist_entry_zone }}</p>
+              {% if rec.guidance.stop_loss_zone %}
+              <p style="margin:4px 0 0;font-size:11px;color:#0369a1;"><strong>Stop-Loss Reference:</strong> {{ rec.guidance.stop_loss_zone }}</p>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:24px 32px;background:#f8f9fa;border-top:1px solid #e2e8f0;">
+        <p style="margin:0 0 6px;font-size:10px;color:#9ca3af;line-height:1.6;">
+          This report is generated by an automated AI research system for informational purposes only.
+          It does not constitute financial advice or a recommendation to buy or sell any security.
+          This system does not connect to brokerage accounts or execute any trades.
+          All investment decisions are the sole responsibility of the investor.
+        </p>
+        <p style="margin:8px 0 0;font-size:10px;color:#9ca3af;">Investment Intelligence Engine — Research &amp; Analysis Platform</p>
+      </td>
+    </tr>
+
+  </table>
+</td></tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,260 @@
+# Investment Intelligence Report — {{ run_date }}
+
+> **RESEARCH & ANALYSIS PURPOSES ONLY — NOT INVESTMENT ADVICE.**
+> All price levels and metrics below are informational reference points only.
+> They are not buy/sell signals or trading instructions. Actual investment
+> decisions remain entirely the responsibility of the investor.
+
+---
+
+## Market Context
+
+| Index | Close | Change |
+|-------|------:|-------:|
+{% if market.nifty50_close %}| NIFTY 50 | {{ market.nifty50_close | n(0) }} | {{ market.nifty50_change_pct | sign(2) }}% |{% endif %}
+{% if market.sensex_close %}| SENSEX | {{ market.sensex_close | n(0) }} | {{ market.sensex_change_pct | sign(2) }}% |{% endif %}
+
+{% if market.wti_crude_usd or market.fed_funds_rate %}
+**Global:**
+{% if market.wti_crude_usd %}  WTI Crude: ${{ market.wti_crude_usd | n(1) }}/bbl{% endif %}
+{% if market.fed_funds_rate %}  |  Fed Funds Rate: {{ market.fed_funds_rate | n(2) }}%{% endif %}
+{% endif %}
+
+{% if market.headlines %}
+**Recent Headlines:**
+{% for h in market.headlines %}
+- {{ h }}
+{% endfor %}
+{% endif %}
+
+---
+
+## Today's Picks — Summary
+
+{% if recommendations %}
+| # | Symbol | Name | Category | Score | Price (₹) | RSI | MACD | Confidence |
+|---|--------|------|----------|------:|----------:|----:|------|----------:|
+{% for rec in recommendations %}
+| {{ loop.index }} | **{{ rec.symbol }}** | {{ rec.name }} | {{ rec.cap_category }} | {{ rec.composite_score | n(1) }} | {{ rec.entry_price | n(0) }} | {{ rec.technical.rsi | n(1) }} | {{ rec.technical.macd_status }} | {{ rec.confidence.score | n(0) }}% |
+{% endfor %}
+{% else %}
+**No recommendations today.** No stocks met all selection criteria.
+{% endif %}
+
+---
+
+{% for rec in recommendations %}
+## {{ loop.index }}. {{ rec.symbol }} — {{ rec.name }}
+
+**Category:** {{ rec.cap_category }} CAP &nbsp;|&nbsp; **Price:** ₹{{ rec.entry_price | n(0) }} &nbsp;|&nbsp; **Composite Score:** {{ rec.composite_score | n(1) }}/100
+
+**Scores:** Fundamental {{ rec.fundamental_score | n(0) }} | Technical {{ rec.technical_score | n(0) }} | Valuation {{ rec.valuation_score | n(0) }} | Risk {{ rec.risk_score | n(0) }}
+
+---
+
+### 1. Technical Analysis
+
+| Indicator | Value | Reading |
+|-----------|------:|---------|
+| RSI (14) | {{ rec.technical.rsi | n(1) }} | {{ rec.technical.rsi_interpretation }} |
+| MACD | {{ rec.technical.macd_status }} | {{ rec.technical.macd_trend }} |
+| SMA-20 | ₹{{ rec.technical.sma_20 | n(0) }} | |
+| SMA-50 | ₹{{ rec.technical.sma_50 | n(0) }} | |
+| SMA-200 | ₹{{ rec.technical.sma_200 | n(0) }} | |
+| ADX | {{ rec.technical.adx | n(1) }} | |
+| Volume Ratio (5d/20d) | {{ rec.technical.volume_ratio_5d_vs_20d | n(2) }} | {{ rec.technical.volume_trend }} |
+
+**Moving Average Analysis:** {{ rec.technical.ma_analysis }}
+
+**Overall Signal:** `{{ rec.technical.overall_technical_signal }}`
+
+---
+
+### 2. Fundamental Analysis
+
+| Metric | Value | Interpretation |
+|--------|------:|----------------|
+| Revenue Growth (YoY) | {{ rec.fundamental.revenue_growth_pct | n(1) }}% | {{ rec.fundamental.revenue_growth_interpretation }} |
+| EPS Growth (YoY) | {{ rec.fundamental.eps_growth_pct | n(1) }}% | {{ rec.fundamental.eps_growth_interpretation }} |
+| ROE | {{ rec.fundamental.roe_pct | n(1) }}% | {{ rec.fundamental.roe_interpretation }} |
+| ROCE | {{ rec.fundamental.roce_pct | n(1) }}% | {{ rec.fundamental.roce_interpretation }} |
+| Debt/Equity | {{ rec.fundamental.debt_to_equity | n(2) }} | {{ rec.fundamental.debt_assessment }} |
+| Profit Margin | {{ rec.fundamental.profit_margin_pct | n(1) }}% | |
+| Operating Margin | {{ rec.fundamental.operating_margin_pct | n(1) }}% | {{ rec.fundamental.margin_assessment }} |
+| P/E Ratio | {{ rec.fundamental.pe_ratio | n(1) }} | |
+| PEG Ratio | {{ rec.fundamental.peg_ratio | n(2) }} | |
+| P/B Ratio | {{ rec.fundamental.pb_ratio | n(2) }} | |
+
+**Valuation Assessment:** {{ rec.fundamental.valuation_assessment }}
+
+**Sector Context** ({{ rec.fundamental.sector or 'N/A' }})**:** {{ rec.fundamental.sector_comparison }}
+
+---
+
+### 3. News & Catalysts
+
+{% if rec.catalysts.positive_developments %}
+**Positive Developments:**
+{% for item in rec.catalysts.positive_developments %}
+- ✅ {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if rec.catalysts.negative_developments %}
+**Negative Developments / Risks:**
+{% for item in rec.catalysts.negative_developments %}
+- ⚠️ {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if rec.catalysts.upcoming_earnings %}
+**Upcoming Earnings:** {{ rec.catalysts.upcoming_earnings }}
+{% endif %}
+
+{% if rec.catalysts.sector_catalysts %}
+**Sector Catalysts:**
+{% for item in rec.catalysts.sector_catalysts %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+{% if rec.catalysts.major_events %}
+**Major Events:**
+{% for item in rec.catalysts.major_events %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+
+---
+
+### 4. Risk Analysis
+
+**Bear Case:** {{ rec.risk.bear_case }}
+
+**Volatility:** {{ rec.risk.volatility_assessment }}
+
+| Risk Metric | Value |
+|-------------|------:|
+| Beta | {{ rec.risk.beta | n(2) }} |
+| Annual Volatility | {{ rec.risk.volatility_annual_pct | n(1) }}% |
+| Max Drawdown | {{ rec.risk.max_drawdown_pct | n(1) }}% |
+
+{% if rec.risk.sector_risks %}
+**Sector Risks:**
+{% for r in rec.risk.sector_risks %}
+- {{ r }}
+{% endfor %}
+{% endif %}
+
+{% if rec.risk.company_risks %}
+**Company Risks:**
+{% for r in rec.risk.company_risks %}
+- {{ r }}
+{% endfor %}
+{% endif %}
+
+{% if rec.risk.valuation_risks %}
+**Valuation Risks:**
+{% for r in rec.risk.valuation_risks %}
+- {{ r }}
+{% endfor %}
+{% endif %}
+
+{% if rec.risk.technical_risks %}
+**Technical Risks:**
+{% for r in rec.risk.technical_risks %}
+- {{ r }}
+{% endfor %}
+{% endif %}
+
+---
+
+### 5. Confidence Score
+
+**Score: {{ rec.confidence.score | n(0) }}/100**
+
+{{ rec.confidence.explanation }}
+
+**Key Positives:**
+{% for item in rec.confidence.key_positives %}
+- ✅ {{ item }}
+{% endfor %}
+
+**Key Negatives:**
+{% for item in rec.confidence.key_negatives %}
+- ⚠️ {{ item }}
+{% endfor %}
+
+---
+
+### 6. Investment Horizon
+
+**Short-term (1–4 weeks):** {{ rec.horizon.short_term }}
+
+**Medium-term (1–6 months):** {{ rec.horizon.medium_term }}
+
+**Long-term (6–24 months):** {{ rec.horizon.long_term }}
+
+---
+
+### 7. Selection Justification
+
+**Why Selected:** {{ rec.justification.why_selected }}
+
+**Bull Reasons:**
+{% for r in rec.justification.bull_reasons %}
+- {{ r }}
+{% endfor %}
+
+**Bear Reasons:**
+{% for r in rec.justification.bear_reasons %}
+- {{ r }}
+{% endfor %}
+
+**Key Assumptions:**
+{% for a in rec.justification.key_assumptions %}
+- {{ a }}
+{% endfor %}
+
+---
+
+### 8. Research Guidance *(Monitoring Reference Only)*
+
+> ⚠️ **{{ rec.guidance.disclaimer }}**
+
+| Reference Point | Level |
+|-----------------|-------|
+| Watchlist Entry Zone | {{ rec.guidance.watchlist_entry_zone or '—' }} |
+| Stop-Loss Reference | {{ rec.guidance.stop_loss_zone or '—' }} |
+
+{% if rec.guidance.monitoring_levels %}
+**Monitoring Levels:**
+{% for lvl in rec.guidance.monitoring_levels %}
+- {{ lvl }}
+{% endfor %}
+{% endif %}
+
+{% if rec.guidance.profit_taking_zones %}
+**Profit-Taking Zones (Research Reference):**
+{% for z in rec.guidance.profit_taking_zones %}
+- {{ z }}
+{% endfor %}
+{% endif %}
+
+*AI Provider: {{ rec.ai_provider }} ({{ rec.ai_model }}) — Generated: {{ rec.generated_at }}*
+
+---
+
+{% endfor %}
+---
+
+## Disclaimer
+
+> RESEARCH & ANALYSIS PURPOSES ONLY — NOT INVESTMENT ADVICE.
+> This report is generated by an automated AI-powered research system.
+> All analysis, scores, and reference price levels are informational only.
+> This system does not place trades, connect to brokerage accounts, or
+> execute any orders. Past hypothetical performance does not guarantee future results.
+> All investment decisions and their outcomes are the sole responsibility of the investor.
+
+*Investment Intelligence Engine — Research & Analysis Platform*

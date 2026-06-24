@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Secrets
+.env
+*.env
+
+# Database
+db/*.db
+db/*.db-shm
+db/*.db-wal
+
+# Cache
+data/cache/
+.cache/
+
+# PDFs are large — store in GitHub Releases, not commits
+reports/daily/**/*.pdf
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
