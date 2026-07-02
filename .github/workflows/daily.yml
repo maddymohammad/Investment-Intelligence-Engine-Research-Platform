@@ -11,11 +11,15 @@ on:
         required: false
         default: ""
 
+# Lets the built-in (free) GITHUB_TOKEN commit daily reports back to this repo.
+permissions:
+  contents: write
+
 jobs:
   run-pipeline:
     name: Run daily analysis pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -40,8 +44,6 @@ jobs:
 
       - name: Initialise database
         run: python -c "from src.storage.db import init_db; init_db()"
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Bootstrap universe (if DB is new)
         run: |
@@ -53,7 +55,7 @@ jobs:
             echo "Universe has $COUNT stocks — skipping bootstrap"
           fi
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          STOCK_UNIVERSE_SIZE: "150"
 
       - name: Run daily pipeline
         run: |
@@ -63,19 +65,31 @@ jobs:
             python main.py run
           fi
         env:
+          # ── AI keys are OPTIONAL ─────────────────────────────────────
+          # When these secrets are unset (₹0 mode), the pipeline
+          # automatically uses the free rule-based narrative engine.
+          # Add ANTHROPIC_API_KEY later and AI narratives switch on —
+          # no code changes needed.
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AI_PROVIDER: claude
+
+          # ── Macro data (OPTIONAL — FRED keys are free at fred.stlouisfed.org) ──
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-          SMTP_HOST: smtp.gmail.com
-          SMTP_PORT: "587"
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          SMTP_FROM: ${{ secrets.SMTP_USER }}
-          REPORT_EMAIL_TO: ${{ secrets.REPORT_EMAIL_TO }}
-          GITHUB_TOKEN: ${{ secrets.REPORTS_GITHUB_TOKEN }}
-          GITHUB_REPO: ${{ secrets.REPORTS_GITHUB_REPO }}
+
+          # ── Email report (OPTIONAL — Gmail app password is free) ─────
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+
+          # ── Report commit — uses the FREE built-in Actions token ─────
+          # Daily reports appear at reports/YYYY-MM-DD.md in this repo.
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPO: ${{ github.repository }}
           GITHUB_BRANCH: main
-          AI_PROVIDER: anthropic
+
+          # ── Runtime safety ────────────────────────────────────────────
+          STOCK_UNIVERSE_SIZE: "150"
           LOG_LEVEL: INFO
 
       - name: Upload report artifact
